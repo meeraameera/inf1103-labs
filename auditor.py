@@ -8,14 +8,14 @@ while True:
         break
 
     if not stock.isdigit():
-        print("Error: Invalid input. Please enter a valid whole number.")
+        print("ERROR: Invalid input. Please enter a valid whole number.")
         failed_entries += 1
         continue
 
     stock = int(stock)
 
     if stock < 0:
-        print("Error: Negative stock values are not allowed.")
+        print("ERROR: Negative stock values are not allowed.")
         failed_entries += 1
         continue
 
