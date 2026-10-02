@@ -17,6 +17,12 @@ def load_inventory():
     
 inventory = load_inventory()
 
+def save_inventory():
+    print("Saving inventory...")
+    with open("inventory.json", "w") as file:
+        json.dump(inventory, file, indent=4)
+    print("Inventory saved successfully to inventory.json.")
+
 def display_all():
     print("\nCurrent Inventory")
     for item in inventory:
@@ -84,8 +90,11 @@ def main():
         elif option == "4":
             search_product()
         elif option == "5":
-            print("Save functionality coming soon...")
+            save_inventory()
         elif option == "6":
+            print("Saving inventory before exit...")
+            save_inventory()
+            print("Thank you for using Inventory Management System.")
             print("Program terminated.")
             break
         else:
