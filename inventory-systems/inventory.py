@@ -9,7 +9,12 @@ class Inventory:
         if not isinstance(product, Product):
             raise TypeError("Only Product objects can be added to the inventory.")
 
+        if self.search_product(product.product_id) is not None:
+            print("A product with this iD already exists.")
+            return False
+
         self.__products.append(product)
+        return True
 
     def search_product(self, product_id):
         for product in self.__products:
@@ -19,7 +24,7 @@ class Inventory:
         return None
 
     def display_all(self):
-        print("\nCurrent Inventory")
+        print("\n========== Current Inventory ==========")
 
         if not self.__products:
             print("Inventory is empty.")
@@ -27,6 +32,8 @@ class Inventory:
 
         for product in self.__products:
             product.display_information()
+            print("---------------------------------------")
 
     def get_products(self):
         return self.__products.copy()
+    
