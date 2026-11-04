@@ -1,174 +1,237 @@
 import os
 import json
-from random import choice
 
-from product import Product
 from inventory import Inventory
+from physical_product import PhysicalProduct
+from digital_product import DigitalProduct
+from can_be_shipped import CanBeShipped
+
+
+FILE_NAME = "inventory.json"
 
 
 def load_inventory():
     inventory = Inventory()
 
-    if os.path.exists("inventory.json"):
-        print("inventory.json found.")
+    if os.path.exists(FILE_NAME):
+        return inventory
 
-        with open("inventory.json", "r") as file:
-            products = json.load(file)
+    try:
+        with open(FILE_NAME, "r") as file:
+            products_data = json.load(file)
 
-        for item in products:
-            product = Product(
-                item["id"], 
-                item["name"], 
-                item["price"], 
-                item["stock"]
-            )
+        for item in products_data:
+            product_type = item.get("type")
+
+            if product_type == "physical":
+                product = PhysicalProduct(
+                    item["id"], 
+                    item["name"], 
+                    item["price"], 
+                    item["stock"], 
+                    item["weight"]
+                )
+
+            elif product_type == "digital":
+                product = DigitalProduct(
+                    item["id"], 
+                    item["name"], 
+                    item["price"], 
+                    item["stock"], 
+                    item["download_size"]
+                )
+
+            else:
+                print(
+                    f"Skipping {item.get('id', 'unknown')}: "
+                    "missing or invalid product type."
+                )
+                continue
+
             inventory.add_product(product)
 
         print("Inventory loaded successfully.")
 
-    else:
-        print("inventory.json not found. Starting with default inventory.")
-
-        default_products = [
-            Product("P001", "Laptop", 1200.00, 15),
-            Product("P002", "Mouse", 25.50, 40),
-            Product("P003", "Keyboard", 45.00, 25)
-        ]
-
-        for product in default_products:
-            inventory.add_product(product)
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+        print(f"Error loading inventory: {error}")
 
     return inventory
 
 def save_inventory(inventory):
-    print("Saving inventory...")
-
-    products = []
+    products_data = []
 
     for product in inventory.get_products():
-        products.append({
+        products_data = {
             "id": product.product_id,
             "name": product.name,
             "price": product.price,
             "stock": product.stock
-        })
+        }
 
-    with open("inventory.json", "w") as file:
-        json.dump(products, file, indent=4)
+        if isinstance(product, PhysicalProduct):
+            products_data["type"] = "physical"
+            products_data["weight"] = product.weight
 
-    print("Inventory saved successfully to inventory.json.")
+        elif isinstance(product, DigitalProduct):
+            products_data["type"] = "digital"
+            products_data["download_size"] = product.download_size
 
-def display_all(inventory):
-    print("\nCurrent Inventory")
-    inventory.display_all()
+        products_data.append(products_data)
+
+    with open(FILE_NAME, "w") as file:
+        json.dump(products_data, file, indent=4)
+
+    print("Inventory saved successfully.")
 
 def add_product(inventory):
-    print("\nAdd New Product")
+    print("\n========== Add Product ==========")
 
-    prod_id = input("Product ID: ")
-    name = input("Product Name: ")
+    product_type = input(
+        "Enter product type (physical/digital): "
+    ).strip().lower()
 
-    try:
-        price = float(input("Price: "))
-        stock = int(input("Stock Quantity: "))
-
-        if price < 0 or stock < 0:
-            print("Price and stock must be non-negative.")
-            return
-
-    except ValueError:
-        print("Invalid input for price or stock. Please enter numeric values.")
+    if product_type not in ["physical", "digital"]:
+        print("Invalid product type.")
         return
 
-    product = Product(prod_id, name, price, stock)
-    inventory.add_product(product)
+    product_id = input("Enter product ID: ").strip()
 
-    print("Product added successfully!")
+    if not product_id:
+        print("Product ID cannot be empty.")
+        return  
+
+    if inventory.search_product(product_id) is not None:
+        print("A product with this ID already exists.")
+        return
+
+    name = input("Enter product name: ").strip()
+
+    if not name:
+        print("Product name cannot be empty.")
+        return
+
+    try:
+        price = float(input("Enter product price: "))
+        stock = int(input("Enter product stock: "))
+
+        if price < 0 or stock < 0:
+            print("Price and stock cannot be negative.")
+            return
+
+        if product_type == "physical":
+            weight = float(input("Enter product weight (kg): "))
+
+            if weight < 0:
+                print("Weight cannot be negative.")
+                return
+
+            product = PhysicalProduct(
+                product_id, name, price, stock, weight
+            )
+
+        else:
+            download_size = float(
+                input("Enter download size (MB): ")
+            )
+
+            if download_size < 0:
+                print("Download size cannot be negative.")
+                return
+
+            product = DigitalProduct(
+                product_id, name, price, stock, download_size
+            )
+
+        if inventory.add_product(product):
+            print("Product added successfully!")
+
+    except ValueError:
+        print("Invalid input. Please enter nthe correct data type.")
 
 def update_stock(inventory):
-    print("\nUpdate Stock")
+    print("\n========== Update Stock ==========")
 
-    prod_id = input("Enter Product ID: ")
-    product = inventory.search_product(prod_id)
+    product_id = input("Enter Product ID: ").strip()
+    
+    product = inventory.search_product(product_id)
 
     if product is None:
         print("Product not found.")
         return
 
-    print(
-        f"Product Found:\n"
-        f"Name: {product.name}\n"
-        f"Current Stock: {product.stock}"
-    )
-
     try:
-        new_stock = int(input("New Stock Quantity: "))
+        quantity = int(input("Enter new stock quantity: "))
 
-        if new_stock < 0:
-            print("Stock quantity must be non-negative.")
+        if quantity < 0:
+            print("Stock cannot benegative.")
             return
 
-    except ValueError:
-        print("Invalid input for stock. Please enter a numeric value.")
-        return
+        product.update_stock(quantity)
 
-    product.update_stock(new_stock)
-    print("Stock updated successfully!")
+        print("Stock updated successfully.")
+
+    except ValueError:
+        print("Please enter a valid whole number.")
 
 def search_product(inventory):
-    print("\nSearch Product")
+    print("\n========== Search Product ==========")
 
-    prod_id = input("Enter Product ID: ")
-    product = inventory.search_product(prod_id)
+    product_id = input("Enter Product ID: ").strip()
+
+    product = inventory.search_product(product_id)
 
     if product is None:
-        print("\nProduct not found.")
+        print("Product not found.")
         return
 
     print("\nProduct Found")
-    print("-" * 40)
     product.display_information()
-    print("-" * 40)
+
+    print("\nFulfilment Information:")
+    print(product.get_fulfilment_info())
+
+    if isinstance(product, CanBeShipped):
+        print(
+            f"Shipping Cost: "
+            f"${product.calculate_shipping_cost():.2f}"
+        )
 
 def main():
     inventory = load_inventory()
 
     while True:
-        print("\nINVENTORY MANAGEMENT SYSTEM")
-        print("MENU")
+        print("\n========== Inventory Management System ==========")
         print("1. Display All Products")
         print("2. Add New Product")
         print("3. Update Stock")
         print("4. Search Product")
-        print("5. Save and Exit")
+        print("5. Save Inventory")
         print("6. Exit")
 
-        option = input("Enter option: ")
+        choice = input("Enter your choice (1-6): ").strip()
 
-        if option == "1":
-            display_all(inventory)
+        if choice == "1":
+            inventory.display_all()
 
-        elif option == "2":
+        elif choice == "2":
             add_product(inventory)
 
-        elif option == "3":
+        elif choice == "3":
             update_stock(inventory)
 
-        elif option == "4":
+        elif choice == "4":
             search_product(inventory)
 
-        elif option == "5":
+        elif choice == "5":
             save_inventory(inventory)
 
-        elif option == "6":
-            print("Saving inventory before exit...")
+        elif choice == "6":
             save_inventory(inventory)
-            print("Thank you for using Inventory Management System.")
-            print("Program terminated.")
+            print("Exiting Inventory Management System.")
             break
 
         else:
-            print("Invalid option. Please try again.")
+            print("Invalid option. Please select 1-6.")
 
 
 if __name__ == "__main__":
