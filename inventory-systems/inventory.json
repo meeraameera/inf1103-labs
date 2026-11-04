@@ -2,7 +2,7 @@
     {
         "id": "P001",
         "name": "Laptop",
-        "price": 1200.00,
+        "price": 1200.0,
         "stock": 15,
         "type": "physical",
         "weight": 2.5
@@ -10,9 +10,25 @@
     {
         "id": "D001",
         "name": "Python Programming EBook",
-        "price": 25.00,
+        "price": 25.0,
         "stock": 50,
         "type": "digital",
         "download_size": 15.5
+    },
+    {
+        "id": "P002",
+        "name": "Keyboard",
+        "price": 45.0,
+        "stock": 25,
+        "type": "physical",
+        "weight": 0.8
+    },
+    {
+        "id": "D002",
+        "name": "Python Course",
+        "price": 50.0,
+        "stock": 100,
+        "type": "digital",
+        "download_size": 250.0
     }
 ]
