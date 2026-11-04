@@ -2,25 +2,17 @@
     {
         "id": "P001",
         "name": "Laptop",
-        "price": 1200.0,
-        "stock": 20
+        "price": 1200.00,
+        "stock": 15,
+        "type": "physical",
+        "weight": 2.5
     },
     {
-        "id": "P002",
-        "name": "Mouse",
-        "price": 25.5,
-        "stock": 40
-    },
-    {
-        "id": "P003",
-        "name": "Keyboard",
-        "price": 45.0,
-        "stock": 25
-    },
-    {
-        "id": "P004",
-        "name": "Earpiece",
-        "price": 23.0,
-        "stock": 25
+        "id": "D001",
+        "name": "Python Programming EBook",
+        "price": 25.00,
+        "stock": 50,
+        "type": "digital",
+        "download_size": 15.5
     }
 ]
