@@ -13,7 +13,7 @@ FILE_NAME = "inventory.json"
 def load_inventory():
     inventory = Inventory()
 
-    if os.path.exists(FILE_NAME):
+    if not os.path.exists(FILE_NAME):
         return inventory
 
     try:
@@ -184,7 +184,7 @@ def search_product(inventory):
         print("Product not found.")
         return
 
-    print("\nProduct Found")
+    print("\nProduct Found:")
     product.display_information()
 
     print("\nFulfilment Information:")

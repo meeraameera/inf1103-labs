@@ -10,7 +10,7 @@ class Inventory:
             raise TypeError("Only Product objects can be added to the inventory.")
 
         if self.search_product(product.product_id) is not None:
-            print("A product with this iD already exists.")
+            print("A product with this ID already exists.")
             return False
 
         self.__products.append(product)
