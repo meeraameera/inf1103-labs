@@ -61,7 +61,7 @@ def save_inventory(inventory):
     products_data = []
 
     for product in inventory.get_products():
-        products_data = {
+        product_data = {
             "id": product.product_id,
             "name": product.name,
             "price": product.price,
@@ -69,14 +69,14 @@ def save_inventory(inventory):
         }
 
         if isinstance(product, PhysicalProduct):
-            products_data["type"] = "physical"
-            products_data["weight"] = product.weight
+            product_data["type"] = "physical"
+            product_data["weight"] = product.weight
 
         elif isinstance(product, DigitalProduct):
-            products_data["type"] = "digital"
-            products_data["download_size"] = product.download_size
+            product_data["type"] = "digital"
+            product_data["download_size"] = product.download_size
 
-        products_data.append(products_data)
+        products_data.append(product_data)
 
     with open(FILE_NAME, "w") as file:
         json.dump(products_data, file, indent=4)
