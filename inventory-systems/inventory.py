@@ -2,38 +2,42 @@ from product import Product
 
 
 class Inventory:
-    def __init__(self):
-        self.__products = []
+    def __init__(self) -> None:
+        self.products: list[Product] = []
 
-    def add_product(self, product):
-        if not isinstance(product, Product):
-            raise TypeError("Only Product objects can be added to the inventory.")
+    def add_product(self, product: Product) -> None:
+        if self.find_product(product.product_id) is not None:
+            raise TypeError("Product ID already exists in the inventory.")
+        
+        self.products.append(product)
 
-        if self.search_product(product.product_id) is not None:
-            print("A product with this ID already exists.")
-            return False
+    def remove_product(self, product_id: str) -> Product | None:
+        product = self.find_product(product_id)
 
-        self.__products.append(product)
-        return True
+        if product is not None:
+            self.products.remove(product)
+            return product
 
-    def search_product(self, product_id):
-        for product in self.__products:
+        return None
+
+    def find_product(self, product_id: str) -> Product | None:
+        for product in self.products:
             if product.product_id == product_id:
                 return product
             
         return None
 
-    def display_all(self):
+    def display_all(self) -> None:
         print("\n========== Current Inventory ==========")
 
-        if not self.__products:
+        if not self.products:
             print("Inventory is empty.")
             return
 
-        for product in self.__products:
+        for product in self.products:
             product.display_information()
             print("---------------------------------------")
 
-    def get_products(self):
-        return self.__products.copy()
+    def get_products(self) -> list[Product]:
+        return self.products.copy()
     
