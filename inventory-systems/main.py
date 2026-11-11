@@ -5,12 +5,15 @@ from inventory import Inventory
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
 from can_be_shipped import CanBeShipped
+from supplier import Supplier
+from product import Product
+from order import Order
 
 
 FILE_NAME = "inventory.json"
 
 
-def load_inventory():
+def load_inventory() -> Inventory:
     inventory = Inventory()
 
     if not os.path.exists(FILE_NAME):
@@ -20,8 +23,21 @@ def load_inventory():
         with open(FILE_NAME, "r") as file:
             products_data = json.load(file)
 
+        suppliers: dict[str, Supplier] = {}
+
         for item in products_data:
-            product_type = item.get("type")
+            supplier_data = item["supplier"]
+            supplier_id = supplier_data["supplier_id"]
+
+            if supplier_id not in suppliers:
+                suppliers[supplier_id] = Supplier(
+                    supplier_id,
+                    supplier_data["name"],
+                    supplier_data["contact_email"]
+                )
+
+            supplier = suppliers[supplier_id]
+            product_type = item["type"]
 
             if product_type == "physical":
                 product = PhysicalProduct(
@@ -38,14 +54,12 @@ def load_inventory():
                     item["name"], 
                     item["price"], 
                     item["stock"], 
-                    item["download_size"]
+                    item["download_size"],
+                    supplier
                 )
 
             else:
-                print(
-                    f"Skipping {item.get('id', 'unknown')}: "
-                    "missing or invalid product type."
-                )
+                print(f"Unknown product type: {product_type}")
                 continue
 
             inventory.add_product(product)
@@ -57,7 +71,7 @@ def load_inventory():
 
     return inventory
 
-def save_inventory(inventory):
+def save_inventory(inventory: Inventory) -> None:
     products_data = []
 
     for product in inventory.get_products():
@@ -65,7 +79,12 @@ def save_inventory(inventory):
             "id": product.product_id,
             "name": product.name,
             "price": product.price,
-            "stock": product.stock
+            "stock": product.stock,
+            "supplier": {
+                "supplier_id": product.supplier.supplier_id,
+                "name": product.supplier.name,
+                "contact_email": product.supplier.contact_email
+            }
         }
 
         if isinstance(product, PhysicalProduct):
@@ -83,7 +102,16 @@ def save_inventory(inventory):
 
     print("Inventory saved successfully.")
 
-def add_product(inventory):
+def create_supplier() -> Supplier:
+    print("\n========== Supplier Details ==========")
+
+    supplier_id = input("Enter supplier ID: ").strip()
+    name = input("Enter supplier name: ").strip()
+    email = input("Enter supplier email: ").strip()
+
+    return Supplier(supplier_id, name, email)
+
+def add_product(inventory: Inventory) -> None:
     print("\n========== Add Product ==========")
 
     product_type = input(
@@ -95,19 +123,14 @@ def add_product(inventory):
         return
 
     product_id = input("Enter product ID: ").strip()
-
-    if not product_id:
-        print("Product ID cannot be empty.")
-        return  
-
-    if inventory.search_product(product_id) is not None:
-        print("A product with this ID already exists.")
-        return
-
     name = input("Enter product name: ").strip()
 
-    if not name:
-        print("Product name cannot be empty.")
+    if not product_id or not name:
+        print("Product ID and name cannot be empty.")
+        return  
+
+    if inventory.find_product(product_id) is not None:
+        print("A product with this ID already exists.")
         return
 
     try:
@@ -118,6 +141,8 @@ def add_product(inventory):
             print("Price and stock cannot be negative.")
             return
 
+        supplier = create_supplier()
+
         if product_type == "physical":
             weight = float(input("Enter product weight (kg): "))
 
@@ -126,7 +151,12 @@ def add_product(inventory):
                 return
 
             product = PhysicalProduct(
-                product_id, name, price, stock, weight
+                product_id, 
+                name, 
+                price, 
+                stock, 
+                weight,
+                supplier
             )
 
         else:
@@ -139,21 +169,25 @@ def add_product(inventory):
                 return
 
             product = DigitalProduct(
-                product_id, name, price, stock, download_size
+                product_id, 
+                name, 
+                price, 
+                stock, 
+                download_size,
+                supplier
             )
 
-        if inventory.add_product(product):
-            print("Product added successfully!")
+        inventory.add_product(product)
+        print("Product added successfully!")
 
-    except ValueError:
-        print("Invalid input. Please enter nthe correct data type.")
+    except ValueError as error:
+        print(f"Invalid input: {error}")
 
-def update_stock(inventory):
+def update_stock(inventory: Inventory) -> None:
     print("\n========== Update Stock ==========")
 
     product_id = input("Enter Product ID: ").strip()
-    
-    product = inventory.search_product(product_id)
+    product = inventory.find_product(product_id)
 
     if product is None:
         print("Product not found.")
@@ -173,18 +207,16 @@ def update_stock(inventory):
     except ValueError:
         print("Please enter a valid whole number.")
 
-def search_product(inventory):
+def search_product(inventory: Inventory) -> None:
     print("\n========== Search Product ==========")
 
     product_id = input("Enter Product ID: ").strip()
-
-    product = inventory.search_product(product_id)
+    product = inventory.find_product(product_id)
 
     if product is None:
         print("Product not found.")
         return
 
-    print("\nProduct Found:")
     product.display_information()
 
     print("\nFulfilment Information:")
@@ -196,7 +228,51 @@ def search_product(inventory):
             f"${product.calculate_shipping_cost():.2f}"
         )
 
-def main():
+def remove_product(inventory: Inventory) -> None:
+    print("\n========== Remove Product ==========")
+
+    product_id = input("Enter Product ID: ").strip()
+    product = inventory.remove_product(product_id)
+
+    if product is None:
+        print("Product not found.")
+    else:
+        print(f"{product.name} removed from inventory.")
+
+def create_order(inventory: Inventory) -> None:
+    print("\n========== Create Order ==========")
+
+    order_id = input("Enter order ID: ").strip()
+
+    if not order_id:
+        print("Order ID cannot be empty")
+        return
+
+    order = Order(order_id)
+
+    while True:
+        product_id = input("Enter a product ID (or 'done' to finish): ").strip()
+
+        if product_id.lower == "done":
+            break
+
+        product = inventory.find_product(product_id)
+
+        if product is None:
+            print("Product not found.")
+            continue
+
+        try:
+            quantity = int(input("Enter quantity: "))
+            order.add_order_line(product, quantity)
+            print("Product added to order.")
+
+        except ValueError as error:
+            print(f"Invalid input: {error}")
+
+    order.display_order()
+
+def main() -> None:
     inventory = load_inventory()
 
     while True:
@@ -207,8 +283,10 @@ def main():
         print("4. Search Product")
         print("5. Save Inventory")
         print("6. Exit")
+        print("7. Remove Product")
+        print("8. Create Order")
 
-        choice = input("Enter your choice (1-6): ").strip()
+        choice = input("Enter your choice (1-8): ").strip()
 
         if choice == "1":
             inventory.display_all()
@@ -230,8 +308,14 @@ def main():
             print("Exiting Inventory Management System.")
             break
 
+        elif choice == "7":
+            remove_product(inventory)
+
+        elif choice == "8":
+            create_order(inventory)
+
         else:
-            print("Invalid option. Please select 1-6.")
+            print("Invalid option. Please select 1-8.")
 
 
 if __name__ == "__main__":
