@@ -7,8 +7,8 @@ class Order:
         self .order_id: str = order_id
         self.order_lines: list[OrderLine] = []
 
-    def add_order_line(self, product: Product, quantitty: int) -> None:
-        order_line = OrderLine(product, quantitty)
+    def add_order_line(self, product: Product, quantity: int) -> None:
+        order_line = OrderLine(product, quantity)
         self.order_lines.append(order_line)\
 
     def remove_order_line(self, index: int) -> OrderLine | None:
