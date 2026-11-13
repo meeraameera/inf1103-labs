@@ -45,7 +45,8 @@ def load_inventory() -> Inventory:
                     item["name"], 
                     item["price"], 
                     item["stock"], 
-                    item["weight"]
+                    item["weight"],
+                    supplier
                 )
 
             elif product_type == "digital":
