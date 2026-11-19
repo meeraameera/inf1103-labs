@@ -1,6 +1,6 @@
-from product import Product
-from can_be_shipped import CanBeShipped
-from supplier import Supplier
+from .product import Product
+from .supplier import Supplier
+from shipping.can_be_shipped import CanBeShipped
 
 
 class PhysicalProduct(Product, CanBeShipped):

@@ -1,4 +1,4 @@
-from discount_strategy import DiscountStrategy
+from .discount_strategy import DiscountStrategy
 
 
 class PercentageDiscount(DiscountStrategy):

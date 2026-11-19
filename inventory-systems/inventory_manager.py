@@ -1,16 +1,16 @@
 import os
 import json
 
-from inventory import Inventory
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
-from can_be_shipped import CanBeShipped
-from supplier import Supplier
-from product import Product
-from order import Order
+from models.inventory import Inventory
+from models.physical_product import PhysicalProduct
+from models.digital_product import DigitalProduct
+from shipping.can_be_shipped import CanBeShipped
+from models.supplier import Supplier
+from models.product import Product
+from orders.order import Order
 
 
-FILE_NAME = "inventory.json"
+FILE_NAME = os.path.join(os.path.dirname(__file__), "data", "inventory.json")
 
 
 def load_inventory() -> Inventory:
