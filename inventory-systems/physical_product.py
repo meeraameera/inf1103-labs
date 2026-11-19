@@ -13,7 +13,12 @@ class PhysicalProduct(Product, CanBeShipped):
             weight: float, 
             supplier: Supplier
     ) -> None:
+        
         super().__init__(product_id, name, price, stock, supplier)
+
+        if weight <= 0:
+            raise ValueError("Product wieght must be greater than zero.")
+        
         self.__weight: float = weight
 
     @property

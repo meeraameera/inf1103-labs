@@ -12,7 +12,12 @@ class DigitalProduct(Product):
             download_size: float, 
             supplier: Supplier
     ) -> None:
+        
         super().__init__(product_id, name, price, stock, supplier)
+
+        if download_size <= 0:
+            raise ValueError("Download size must be greater than zero.")
+        
         self.__download_size: float = download_size
 
     @property
