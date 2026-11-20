@@ -20,7 +20,16 @@ class ProductFactory:
 
         if product_type == "physical":
             if weight is None:
-                return PhysicalProduct(product_id, name, price, stock_quantity, weight, supplier)
+                raise ValueError("Physical products require a weight.")
+
+            return PhysicalProduct(
+                product_id,
+                name,
+                price,
+                stock_quantity,
+                weight,
+                supplier
+            )
 
         elif product_type == "digital":
             if download_size is None:
