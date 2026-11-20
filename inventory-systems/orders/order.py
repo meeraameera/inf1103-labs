@@ -16,13 +16,15 @@ class Order:
 
         if discount is None:
             self.discount: DiscountStrategy = NoDiscount()
+        else:
+            self.discount = discount
 
     def set_discount(self, discount: DiscountStrategy) -> None:
         self.discount = discount
 
     def add_order_line(self, product: Product, quantity: int) -> None:
         order_line = OrderLine(product, quantity)
-        self.order_lines.append(order_line)\
+        self.order_lines.append(order_line)
 
     def remove_order_line(self, index: int) -> OrderLine | None:
         if 0 <= index < len(self.order_lines):
