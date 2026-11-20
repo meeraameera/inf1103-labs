@@ -11,7 +11,7 @@ class BulkDiscount(DiscountStrategy):
             raise ValueError("Discount amount cannot be negative!")
 
         self.threshold: float = threshold
-        self. amount: float = amount
+        self.amount: float = amount
 
     def apply(self, total: float) -> float:
         if total >= self.threshold:
